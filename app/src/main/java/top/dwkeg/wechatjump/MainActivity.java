@@ -1,20 +1,27 @@
 package top.dwkeg.wechatjump;
 
 import android.Manifest;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.media.projection.MediaProjectionManager;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import top.dwkeg.wechatjump.accessibility.GameDetectService;
 import top.dwkeg.wechatjump.accessibility.Shotter;
 
 /**
@@ -26,9 +33,38 @@ public class MainActivity extends AppCompatActivity {
 	public static final int REQUEST_MEDIA_PROJECTION = 0x2893;
 	@BindView(R.id.tv_content)
 	TextView tvContent;
+	@BindView(R.id.ev_parameter)
+	EditText editTextParameter;
+	@BindView(R.id.btn_start)
+	Button startBtn;
+	@BindView(R.id.btn_stop)
+	Button stopBtn;
 	@OnClick(R.id.btn_stop)
 	public void stopClick(View view){
-
+		Intent intent = new Intent(this, Shotter.class);
+		intent.putExtra("stop_info", true);
+		startService(intent);
+		startBtn.setEnabled(true);
+		stopBtn.setEnabled(false);
+	}
+	@OnClick(R.id.btn_start)
+	public void startClick(View view){
+		String input = editTextParameter.getText().toString().trim();
+		if(TextUtils.isEmpty(input)){
+			startBtn.setEnabled(false);
+			stopBtn.setEnabled(true);
+			requestScreenShot();
+			return;
+		}
+		try{
+			float parameter = Float.valueOf(input);
+			GameDetectService.confficience = parameter;
+		}catch (NumberFormatException e){
+			e.printStackTrace();
+		}
+		startBtn.setEnabled(false);
+		stopBtn.setEnabled(true);
+		requestScreenShot();
 	}
 	@Override
 	protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -44,11 +80,34 @@ public class MainActivity extends AppCompatActivity {
 		if(checkSelfPermission(Manifest.permission.RECORD_AUDIO)!= PackageManager.PERMISSION_GRANTED){
 			requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 200);
 		}
-		requestScreenShot();
-//		Intent intent = new Intent(this, ShellService.class);
-//		intent.putExtra("cmd", "adb shell swipe 200 0 200 1200 3000");
-//		startService(intent);
+
 	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		Intent intent = new Intent(this, Shotter.class);
+		bindService(intent, connection, BIND_AUTO_CREATE);
+	}
+	ServiceConnection connection = new ServiceConnection() {
+		@Override
+		public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+			Shotter service = ((Shotter.LocalBinder)iBinder).getServie();
+			if(service.status){
+				startBtn.setEnabled(false);
+				stopBtn.setEnabled(true);
+			}else{
+				startBtn.setEnabled(true);
+				stopBtn.setEnabled(false);
+			}
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName componentName) {
+			startBtn.setEnabled(true);
+			stopBtn.setEnabled(false);
+		}
+	};
 
 	public void requestScreenShot() {
 		MediaProjectionManager manager = ((MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE));

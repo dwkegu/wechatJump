@@ -2,8 +2,10 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/WechatJump.iml" filepath="$PROJECT_DIR$/WechatJump.iml" />
+      <module fileurl="file://D:\androidWorkspace\wechatJump\WechatJump.iml" filepath="D:\androidWorkspace\wechatJump\WechatJump.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://D:\androidWorkspace\wechatJump\app\app.iml" filepath="D:\androidWorkspace\wechatJump\app\app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/wechatJump.iml" filepath="$PROJECT_DIR$/wechatJump.iml" />
     </modules>
   </component>
 </project>

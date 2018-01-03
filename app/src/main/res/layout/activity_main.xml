@@ -5,20 +5,63 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="top.dwkeg.wechatjump.MainActivity">
-
-    <TextView
-        android:id="@+id/tv_content"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-    <Button
-        android:id="@+id/btn_stop"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="停止"/>
+        app:layout_constraintTop_toTopOf="parent">
+        <TextView
+            android:id="@+id/tv_content"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="8pt"
+            android:textColor="@android:color/darker_gray"
+            android:layout_margin="5dp"
+            android:text="微信跳一跳小助手：请先到设置里面辅助功能开启wechatJump，然后开启助手服务，进入微信，打开跳一跳小程序即可自动刷分^_^" />
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="力度参数（建议1.0-3.0之间）：" />
+            <EditText
+                android:id="@+id/ev_parameter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="6"
+                android:hint="1.364"/>
+
+        </TableRow>
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp">
+            <Button
+                android:id="@+id/btn_start"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="开启助手"
+                style="@style/Widget.AppCompat.Button.Colored"
+                android:layout_marginLeft="50dp"/>
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"/>
+            <Button
+                android:id="@+id/btn_stop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="停止助手"
+                style="@style/Widget.AppCompat.Button.Colored"
+                android:layout_marginRight="50dp"/>
+        </TableRow>
+
+    </LinearLayout>
+
 
 </android.support.constraint.ConstraintLayout>

@@ -44,7 +44,7 @@ public class Shotter extends Service{
 
 
 	public class LocalBinder extends Binder {
-		Shotter getServie(){
+		public Shotter getServie(){
 			return Shotter.this;
 		}
 	}
@@ -52,6 +52,7 @@ public class Shotter extends Service{
 	private void setDataIntent(Intent data) {
 		mMediaProjection = getMediaProjectionManager().getMediaProjection(Activity.RESULT_OK,
 				data);
+		virtualDisplay();
 	}
 	VirtualDisplay mVirtualDisplay= null;
 
@@ -60,7 +61,7 @@ public class Shotter extends Service{
 				getScreenWidth(),
 				getScreenHeight(),
 				PixelFormat.RGBA_8888,
-				1);
+				2);
 		mVirtualDisplay = mMediaProjection.createVirtualDisplay("screen-mirror",
 				getScreenWidth(),
 				getScreenHeight(),
@@ -80,7 +81,6 @@ public class Shotter extends Service{
 		if(mMediaProjection==null){
 			return;
 		}
-		virtualDisplay();
 		Log.d(Constants.LOGTAG_COMMONIFO, "obtain image");
 		try {
 			Thread.sleep(200);
@@ -90,9 +90,7 @@ public class Shotter extends Service{
 		}
 		Image image = mImageReader.acquireLatestImage();
 		shotListener.onFinish(image);
-		mImageReader.close();
-		mVirtualDisplay.release();
-		mVirtualDisplay = null;
+
 	}
 
 
@@ -117,7 +115,7 @@ public class Shotter extends Service{
 	public IBinder onBind(Intent intent) {
 		return mBinder;
 	}
-	private boolean status = false;
+	public boolean status = false;
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		if(intent!=null&&intent.getBooleanExtra("stop_info", false)){

@@ -38,8 +38,9 @@ public class GameDetectService extends AccessibilityService {
 	private static boolean start = true;
 	private static boolean shotServiceConnected = false;
 	private Shotter shotService = null;
-	private static final int piece_base_height1_2 = 20;
+	private static final int piece_base_height1_2 =20;
 	private static int pieceBodyWidth = 40;
+	public static float confficience = 1.356f;
 	private ServiceConnection connection = new ServiceConnection() {
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
@@ -90,7 +91,7 @@ public class GameDetectService extends AccessibilityService {
 							}
 						}
 						while(start){
-							Log.d(Constants.LOGTAG_COMMONIFO, "start to shot");
+//							Log.d(Constants.LOGTAG_COMMONIFO, "start to shot");
 							shotService.startScreenShot();
 							try {
 								Thread.sleep(4000);
@@ -206,7 +207,7 @@ public class GameDetectService extends AccessibilityService {
 				int cg = (currentPixel>>8)&0x0000ff;
 				int cb = currentPixel&0x000000ff;
 				if(Math.abs(cr-lr)+Math.abs(cg-lg)+Math.abs(cb-lb)>10){
-					Log.d(Constants.LOGTAG_COMMONIFO, String.valueOf(j));
+//					Log.d(Constants.LOGTAG_COMMONIFO, String.valueOf(j));
 					boardXSum += j;
 					boardXC += 1;
 				}
@@ -301,15 +302,16 @@ public class GameDetectService extends AccessibilityService {
 		if(points==null||points.length<2) return 0;
 		double distance = Math.sqrt(Math.pow(points[0].x-points[1].x,2)
 				+ Math.pow(points[0].y-points[1].y, 2));
-		return (long)(distance*1.346);
+		return (long)(distance*confficience);
 	}
 	private void playGame(Image image){
-		Log.d(Constants.LOGTAG_COMMONIFO, "height"+  image.getHeight() + "width" + image.getWidth());
+//		Log.d(Constants.LOGTAG_COMMONIFO, "height"+  image.getHeight() + "width" + image.getWidth());
 		Rect rect = new Rect();
 		getRootInActiveWindow().getBoundsInScreen(rect);
 		Point[] points = getPositions(image);
-		Log.d(Constants.LOGTAG_COMMONIFO, points[0].toString());
-		Log.d(Constants.LOGTAG_COMMONIFO, points[1].toString());
+		image.close();
+//		Log.d(Constants.LOGTAG_COMMONIFO, points[0].toString());
+//		Log.d(Constants.LOGTAG_COMMONIFO, points[1].toString());
 		long time = getTime(points);
 		GestureDescription.Builder gestureBuilder = new GestureDescription.Builder();
 		Path path = new Path();
