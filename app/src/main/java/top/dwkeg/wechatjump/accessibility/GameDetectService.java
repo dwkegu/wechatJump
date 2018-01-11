@@ -2,10 +2,12 @@ package top.dwkeg.wechatjump.accessibility;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.GestureDescription;
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.graphics.Path;
 import android.graphics.Point;
@@ -14,6 +16,7 @@ import android.media.Image;
 import android.os.Environment;
 import android.os.IBinder;
 import android.os.Looper;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 
@@ -40,7 +43,7 @@ public class GameDetectService extends AccessibilityService {
 	private Shotter shotService = null;
 	private static final int piece_base_height1_2 =20;
 	private static int pieceBodyWidth = 40;
-	public static float confficience = 1.356f;
+	public static float confficience = 1.0f;
 	private ServiceConnection connection = new ServiceConnection() {
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
@@ -92,9 +95,20 @@ public class GameDetectService extends AccessibilityService {
 						}
 						while(start){
 //							Log.d(Constants.LOGTAG_COMMONIFO, "start to shot");
+                            if(shotService==null){
+                                bindService(new Intent(getApplicationContext(), Shotter.class), connection, BIND_AUTO_CREATE);
+                                try {
+                                    Thread.sleep(1000);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            if(shotService==null){
+                                break;
+                            }
 							shotService.startScreenShot();
 							try {
-								Thread.sleep(4000);
+								Thread.sleep(5000);
 							} catch (InterruptedException e) {
 								e.printStackTrace();
 							}
@@ -141,6 +155,8 @@ public class GameDetectService extends AccessibilityService {
 		int minWL = scanXBoard;
 		int maxWR = w-scanXBoard;
 		int maxWidth = 0;
+		int pieceStartY = -1;
+		int pieceEndY = -1;
 		for(int i = scanStartY; i < h *2 /3; i++){
 			minWL = -1;
 			maxWR = -1;
@@ -150,6 +166,12 @@ public class GameDetectService extends AccessibilityService {
 				int g = (currentPixel>>8)&0x0000ff;
 				int b = currentPixel&0x000000ff;
 				if(50 < r && r < 60 && 53 < g && g < 63 && 95 < b && b < 110){
+					if(pieceStartY<0){
+						pieceStartY = i;
+					}
+					if( i >= pieceEndY){
+						pieceEndY = i;
+					}
 					if(minWL< 0){
 						minWL = j;
 						maxWR = j;
@@ -180,16 +202,18 @@ public class GameDetectService extends AccessibilityService {
 		int pieceY = pieceYMax;
 		int boardXStart = 0;
 		int boardXEnd = 0;
+		maxWidth += 20;
 		if(pieceX < w/2){
-			boardXStart = pieceX;
+			boardXStart = pieceX+maxWidth/2;
 			boardXEnd = w-scanXBoard;
 		}else{
-			boardXStart = scanXBoard;
+			boardXStart = scanXBoard-maxWidth/2;
 			boardXEnd = pieceX;
 		}
 		int i = 0;
+//		int bgColor = bitmap.getPixel(boardXStart, h/3);
 		for(i = h/3; i < h*2/3; i++){
-			lastPixel = bitmap.getPixel(boardXStart, i);
+			lastPixel = bitmap.getPixel((boardXStart+boardXEnd)/2, i-1);
 			int lr = (lastPixel>>16)&0x00ff;
 			int lg = (lastPixel>>8)&0x0000ff;
 			int lb = lastPixel&0x000000ff;
@@ -206,7 +230,7 @@ public class GameDetectService extends AccessibilityService {
 				int cr = (currentPixel>>16)&0x00ff;
 				int cg = (currentPixel>>8)&0x0000ff;
 				int cb = currentPixel&0x000000ff;
-				if(Math.abs(cr-lr)+Math.abs(cg-lg)+Math.abs(cb-lb)>10){
+				if(Math.abs(cr-lr)+Math.abs(cg-lg)+Math.abs(cb-lb)>15){
 //					Log.d(Constants.LOGTAG_COMMONIFO, String.valueOf(j));
 					boardXSum += j;
 					boardXC += 1;
@@ -216,28 +240,23 @@ public class GameDetectService extends AccessibilityService {
 				boardX = boardXSum/boardXC;
 			}
 		}
-		lastPixel = bitmap.getPixel(boardX, i);
-		int lr = (lastPixel>>16)&0x00ff;
-		int lg = (lastPixel>>8)&0x0000ff;
-		int lb = lastPixel&0x000000ff;
-		int k = 0;
-		for(k = i+274; k > i; k--){
-			currentPixel = bitmap.getPixel(boardX, k);
-			int cr = (currentPixel>>16)&0x00ff;
-			int cg = (currentPixel>>8)&0x0000ff;
-			int cb = currentPixel&0x000000ff;
-			if(Math.abs(cr-lr)+Math.abs(cg-lg)+Math.abs(cb-lb)<10){
-				break;
-			}
-		}
-		boardY = (i+k)/2;
-		for(int l = i; l < i+200; l++){
-			currentPixel = bitmap.getPixel(boardX, l);
-			int cr = (currentPixel>>16)&0x00ff;
-			int cg = (currentPixel>>8)&0x0000ff;
-			int cb = currentPixel&0x000000ff;
-			if(Math.abs(cr-245)+Math.abs(cg-245)+Math.abs(cb-245)==0){
-				boardY = l+ 10;
+		lastPixel = bitmap.getPixel(boardX, i+2);
+		int bgR = (lastPixel>>16)&0x00ff;
+		int bgG = (lastPixel>>8)&0x0000ff;
+		int bgB = lastPixel&0x000000ff;
+		int lr;
+		int lg;
+		int lb;
+		int tmpPixel;
+		int k =i + 275;
+		while(k > i + 2){
+			k -= 1;
+			tmpPixel = bitmap.getPixel(boardX, k);
+			lr = (tmpPixel>>16)&0x00ff;
+			lg = (tmpPixel>>8)&0x0000ff;
+			lb = tmpPixel&0x000000ff;
+			if (Math.abs(lr-bgR)+Math.abs(lg-bgG)+Math.abs(lb-bgB) < 10) {
+				boardY = (i+k)/2;
 				break;
 			}
 		}
@@ -246,19 +265,33 @@ public class GameDetectService extends AccessibilityService {
 			points[1].set(0,0);
 			return points;
 		}
+		if(pieceY > 40){
+			Log.d(Constants.LOGTAG_COMMONIFO, "pieceHeight = "+String.valueOf(pieceEndY-pieceStartY));
+			pieceY -= (int)(0.5*(pieceEndY-pieceStartY));
+		}
+
 		points[0].set(pieceX, pieceY);
 		points[1].set(boardX, boardY);
-//		String imagePath = Environment.getExternalStorageDirectory().getPath()+"/jump.png";
-//		String position = Environment.getExternalStorageDirectory().getPath()+"/positions.txt";
+//		bitmap.setPixel(points[0].x, points[0].y, Color.RED);
+//		bitmap.setPixel(points[1].x, points[1].y, Color.RED);
+//		File file = new File(Environment.getExternalStorageDirectory().getPath()
+//				+"/jumpImage");
+//		if(!file.exists()&&!file.mkdirs()){
+//			return null;
+//		}
+//		String imagePath = Environment.getExternalStorageDirectory().getPath()+"/jumpImage/jump"
+//				+String.valueOf(System.currentTimeMillis())+".png";
+//		String position = Environment.getExternalStorageDirectory().getPath()+"/jumpImage/positions.txt";
 //		FileOutputStream fos1 = null;
 //		FileOutputStream fos2 = null;
 //		try {
 //			fos1 = new FileOutputStream(imagePath);
-//			fos2 = new FileOutputStream(position);
+//			fos2 = new FileOutputStream(position,true);
 //			bitmap.compress(Bitmap.CompressFormat.PNG, 100,  fos1);
 //			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(fos2));
 //			writer.write("position 1:" + points[0].toString());
 //			writer.write("position 2:" + points[1].toString());
+//			writer.write("\n");
 //			writer.flush();
 //		} catch (FileNotFoundException e) {
 //			e.printStackTrace();
@@ -297,21 +330,27 @@ public class GameDetectService extends AccessibilityService {
 		image.close();
 		return bitmap;
 	}
-
+	public static DisplayMetrics metrics = new DisplayMetrics();
 	private long getTime(Point[] points){
 		if(points==null||points.length<2) return 0;
 		double distance = Math.sqrt(Math.pow(points[0].x-points[1].x,2)
 				+ Math.pow(points[0].y-points[1].y, 2));
-		return (long)(distance*confficience);
+		if(metrics==null||metrics.density==0){
+			return (long)(distance*confficience*2.5);
+		}
+		Log.d(Constants.LOGTAG_COMMONIFO, "density" + String.valueOf(metrics.density));
+		return (long)(3.83*distance*confficience/metrics.density);
 	}
 	private void playGame(Image image){
-//		Log.d(Constants.LOGTAG_COMMONIFO, "height"+  image.getHeight() + "width" + image.getWidth());
+		Log.d(Constants.LOGTAG_COMMONIFO, "height"+  image.getHeight() + "width" + image.getWidth());
 		Rect rect = new Rect();
+		if(getRootInActiveWindow()==null)
+			return;
 		getRootInActiveWindow().getBoundsInScreen(rect);
 		Point[] points = getPositions(image);
 		image.close();
-//		Log.d(Constants.LOGTAG_COMMONIFO, points[0].toString());
-//		Log.d(Constants.LOGTAG_COMMONIFO, points[1].toString());
+		Log.d(Constants.LOGTAG_COMMONIFO, points[0].toString());
+		Log.d(Constants.LOGTAG_COMMONIFO, points[1].toString());
 		long time = getTime(points);
 		GestureDescription.Builder gestureBuilder = new GestureDescription.Builder();
 		Path path = new Path();

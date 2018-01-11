@@ -51,8 +51,6 @@ public class MainActivity extends AppCompatActivity {
 	public void startClick(View view){
 		String input = editTextParameter.getText().toString().trim();
 		if(TextUtils.isEmpty(input)){
-			startBtn.setEnabled(false);
-			stopBtn.setEnabled(true);
 			requestScreenShot();
 			return;
 		}
@@ -62,8 +60,6 @@ public class MainActivity extends AppCompatActivity {
 		}catch (NumberFormatException e){
 			e.printStackTrace();
 		}
-		startBtn.setEnabled(false);
-		stopBtn.setEnabled(true);
 		requestScreenShot();
 	}
 	@Override
@@ -86,28 +82,28 @@ public class MainActivity extends AppCompatActivity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		Intent intent = new Intent(this, Shotter.class);
-		bindService(intent, connection, BIND_AUTO_CREATE);
-	}
-	ServiceConnection connection = new ServiceConnection() {
-		@Override
-		public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-			Shotter service = ((Shotter.LocalBinder)iBinder).getServie();
-			if(service.status){
-				startBtn.setEnabled(false);
-				stopBtn.setEnabled(true);
-			}else{
-				startBtn.setEnabled(true);
-				stopBtn.setEnabled(false);
-			}
-		}
-
-		@Override
-		public void onServiceDisconnected(ComponentName componentName) {
+		if(Shotter.status){
+			startBtn.setEnabled(false);
+			stopBtn.setEnabled(true);
+		}else{
 			startBtn.setEnabled(true);
 			stopBtn.setEnabled(false);
 		}
-	};
+
+	}
+//	ServiceConnection connection = new ServiceConnection() {
+//		@Override
+//		public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+//			Shotter service = ((Shotter.LocalBinder)iBinder).getServie();
+//
+//		}
+//
+//		@Override
+//		public void onServiceDisconnected(ComponentName componentName) {
+//			startBtn.setEnabled(true);
+//			stopBtn.setEnabled(false);
+//		}
+//	};
 
 	public void requestScreenShot() {
 		MediaProjectionManager manager = ((MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE));
@@ -127,13 +123,21 @@ public class MainActivity extends AppCompatActivity {
 		super.onActivityResult(requestCode, resultCode, data);
 		switch (requestCode) {
 			case REQUEST_MEDIA_PROJECTION: {
-				if (resultCode == -1 && data != null) {
+				if (resultCode == RESULT_OK && data != null) {
+					startBtn.setEnabled(false);
+					stopBtn.setEnabled(true);
+					getWindowManager().getDefaultDisplay().getMetrics(GameDetectService.metrics);
 					Intent intent = new Intent(this, Shotter.class);
 					intent.putExtra("intent_data", data);
 					startService(intent);
 				}
 			}
 		}
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
 	}
 
 	public native String stringFromJNI();

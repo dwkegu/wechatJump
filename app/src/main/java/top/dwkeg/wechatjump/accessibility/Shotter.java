@@ -115,7 +115,7 @@ public class Shotter extends Service{
 	public IBinder onBind(Intent intent) {
 		return mBinder;
 	}
-	public boolean status = false;
+	public static boolean status = false;
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		if(intent!=null&&intent.getBooleanExtra("stop_info", false)){
